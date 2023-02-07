@@ -1,17 +1,18 @@
 package ru.korobko;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class App 
 {
     public static void main( String[] args )
     {
-        groupLinesFromFile("lng.txt");
+        groupLinesFromFile("test.txt");
     }
 
     public static void groupLinesFromFile(String fileName) {
@@ -29,13 +30,12 @@ public class App
                 group.add(lines.get(i));
                 //внутренний цикл проходит по всем следующим строкам, проверяя на соответствие заданному условию
                 //(совпадение значений в колонке)
-                for (int j = i + 1; j < lines.size(); j++) {
-                    if (lineIsInsideTheGroup(group, lines.get(j))) {
-                        group.add(lines.get(j));
-                        lines.set(j, "");
-                    }
-                }
-
+                    lines.subList(i + 1, lines.size()).parallelStream().forEachOrdered(line -> {
+                        if (lineIsInsideTheGroup(group, line)) {
+                            group.add(line);
+                            lines.set(lines.indexOf(line), "");
+                        }
+                    });
                 if (group.size() > 1) {
                     groups.add(group);
                 }
@@ -54,6 +54,7 @@ public class App
 
     //метод проверяет, подходит ли строка для группы
     public static boolean lineIsInsideTheGroup(List<String> groups, String string2) {
+
         for (int i = 0; i < groups.size(); i++) {
             String string1 = groups.get(i);
             //сравниваем каждую строку группы с проверяемой строкой и проходим циклом по короткой во избежание IndexOutOfBoundsException
@@ -64,7 +65,7 @@ public class App
                     string2.split(";")
                     : string1.split(";");
             for (int j = 0; j < shortList.length; j++) {
-                if (shortList[j].equals(longList[j])) {
+                if (!shortList[j].isBlank() && shortList[j].equals(longList[j])) {
                     return true;
                 }
             }
@@ -74,17 +75,13 @@ public class App
 
     //получить список строк из файла
     public static List<String> readLinesFromFile(File file) {
-        Set<String> lines = new HashSet<>();
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            while (reader.ready()) {
-                String line = reader.readLine();
-                lines.add(line);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Файл отсутствует или не указан");
+        Set<String> set = new HashSet<>();
+
+        try (Stream<String> lines = Files.lines(Paths.get(file.getName()))) {
+            set = lines.collect(Collectors.toSet());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new ArrayList<>(lines);
+        return new ArrayList<>(set);
     }
 }
