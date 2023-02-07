@@ -2,7 +2,9 @@ package ru.korobko;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class App 
@@ -72,19 +74,17 @@ public class App
 
     //получить список строк из файла
     public static List<String> readLinesFromFile(File file) {
-        List<String> lines = new ArrayList<>();
+        Set<String> lines = new HashSet<>();
         try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
             while (reader.ready()) {
                 String line = reader.readLine();
-                if (!lines.contains(line)) {
-                    lines.add(line);
-                }
+                lines.add(line);
             }
         } catch (FileNotFoundException e) {
             System.out.println("Файл отсутствует или не указан");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return lines;
+        return new ArrayList<>(lines);
     }
 }
