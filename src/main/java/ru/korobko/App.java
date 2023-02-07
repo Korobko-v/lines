@@ -21,20 +21,25 @@ public class App
         for (int i = 0; i < lines.size() - 1; i++) {
 
             //при добавлении в группу значение строки в общем списке перетирается
+            //если во внешний цикл попадает не пустая строка, значит в группах её нет
             if (!lines.get(i).isEmpty()) {
                 List<String> group = new ArrayList<>();
                 group.add(lines.get(i));
+                //внутренний цикл проходит по всем следующим строкам, проверяя на соответствие заданному условию
+                //(совпадение значений в колонке)
                 for (int j = i + 1; j < lines.size(); j++) {
                     if (lineIsInsideTheGroup(group, lines.get(j))) {
                         group.add(lines.get(j));
                         lines.set(j, "");
                     }
                 }
+
                 if (group.size() > 1) {
                     groups.add(group);
                 }
             }
         }
+        //Вывод номера группы и входящих в неё строк
         AtomicInteger count = new AtomicInteger(1);
         groups.stream().sorted((o1, o2) -> o2.size() - o1.size()).forEach(group -> {
                     System.out.println("Группа " + count.getAndIncrement() + "\n");
@@ -49,6 +54,7 @@ public class App
     public static boolean lineIsInsideTheGroup(List<String> groups, String string2) {
         for (int i = 0; i < groups.size(); i++) {
             String string1 = groups.get(i);
+            //сравниваем каждую строку группы с проверяемой строкой и проходим циклом по короткой во избежание IndexOutOfBoundsException
             String[] shortList = string1.split(";").length < string2.split(";").length ?
                     string1.split(";")
                     : string2.split(";");
@@ -64,6 +70,7 @@ public class App
         return false;
     }
 
+    //получить список строк из файла
     public static List<String> readLinesFromFile(File file) {
         List<String> lines = new ArrayList<>();
         try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
