@@ -2,7 +2,6 @@ package ru.korobko;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -10,35 +9,22 @@ public class App
 {
     public static void main( String[] args )
     {
-        groupLinesFromFile("test.txt");
+        groupLinesFromFile("lng.txt");
     }
 
     public static void groupLinesFromFile(String fileName) {
         File file = new File(fileName);
-        List<String> lines = new ArrayList<>();
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            while (reader.ready()) {
-                String line = reader.readLine();
-                lines.add(line);
-            }
-            reader.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("Файл отсутствует или не указан");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        List<String> lines = readLinesFromFile(file);
 
         //лист со всеми группами
         List<List<String>> groups = new ArrayList<>();
         for (int i = 0; i < lines.size() - 1; i++) {
 
             //при добавлении в группу значение строки в общем списке перетирается
-            if (!lines.get(i).isEmpty() && i < lines.size() - 1) {
+            if (!lines.get(i).isEmpty()) {
                 List<String> group = new ArrayList<>();
                 group.add(lines.get(i));
-                lines.set(i, "");
-                for (int j = i+1; j < lines.size(); j++) {
+                for (int j = i + 1; j < lines.size(); j++) {
                     if (lineIsInsideTheGroup(group, lines.get(j))) {
                         group.add(lines.get(j));
                         lines.set(j, "");
@@ -47,9 +33,7 @@ public class App
                 if (group.size() > 1) {
                     groups.add(group);
                 }
-
             }
-
         }
         AtomicInteger count = new AtomicInteger(1);
         groups.stream().sorted((o1, o2) -> o2.size() - o1.size()).forEach(group -> {
@@ -80,5 +64,20 @@ public class App
         return false;
     }
 
-
+    public static List<String> readLinesFromFile(File file) {
+        List<String> lines = new ArrayList<>();
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            while (reader.ready()) {
+                String line = reader.readLine();
+                if (!lines.contains(line)) {
+                    lines.add(line);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл отсутствует или не указан");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return lines;
+    }
 }
