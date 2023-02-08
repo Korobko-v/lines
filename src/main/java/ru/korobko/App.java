@@ -12,7 +12,7 @@ public class App
 {
     public static void main( String[] args )
     {
-        groupLinesFromFile("lng.txt");
+        groupLinesFromFile("lngtest.txt");
     }
 
     public static void groupLinesFromFile(String fileName) {
@@ -30,14 +30,13 @@ public class App
                 group.add(lines.get(i));
                 //внутренний цикл проходит по всем следующим строкам, проверяя на соответствие заданному условию
                 //(совпадение значений в колонке)
-                AtomicInteger count = new AtomicInteger(i + 1);
-                    lines.subList(i + 1, lines.size()).parallelStream().forEachOrdered(l -> {
-                        if (lineIsInsideTheGroup(group, l)) {
-                            group.add(l);
-                            lines.set(count.get(), "");
-                            count.getAndIncrement();
-                        }
-                    });
+                for (int j = i + 1; j < lines.size(); j++) {
+                    if (lineIsInsideTheGroup(group, lines.get(j))) {
+                        group.add(lines.get(j));
+                        lines.set(j, "");
+                        j = i;
+                    }
+                }
                 if (group.size() > 1) {
                     groups.add(group);
                 }
@@ -45,7 +44,7 @@ public class App
         }
         //Вывод номера группы и входящих в неё строк
         AtomicInteger count = new AtomicInteger(1);
-        groups.stream().sorted((o1, o2) -> o2.size() - o1.size()).forEach(group -> {
+        groups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {
                     System.out.println("Группа " + count.getAndIncrement() + "\n");
                     group.forEach(gr -> {
                         System.out.println(gr + "\n");
