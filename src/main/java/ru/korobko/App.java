@@ -1,7 +1,7 @@
 package ru.korobko;
 
 import ru.korobko.model.PhoneNumber;
-import ru.korobko.service.SparkUtils;
+import ru.korobko.utils.FileUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,12 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class App {
     public static void main(String[] args) {
-        List<String> lines = SparkUtils.readFileWithSpark("lng.txt");
+        List<String> lines = FileUtils.readFileWithSpark(args[0]);
 
         List<List<String>> groups = new ArrayList<>();
 
@@ -24,16 +23,7 @@ public class App {
 
         List<List<String>> finalGroups = groupLinesFromFile(lines, groups, numbersWithPositions, groupsToJoin);
 
-        System.out.println("Количество групп: " + finalGroups.size());
-        System.out.println("--------------------------------");
-        AtomicInteger count = new AtomicInteger(1);
-        finalGroups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {
-                    System.out.println("Группа " + count.getAndIncrement() + "\n");
-                    group.forEach(gr -> {
-                        System.out.println(gr + "\n");
-                    });
-                }
-        );
+        FileUtils.writeToFile("output.txt", finalGroups);
     }
 
     /**
