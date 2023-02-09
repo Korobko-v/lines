@@ -1,50 +1,96 @@
 package ru.korobko;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import ru.korobko.model.PhoneNumber;
+import ru.korobko.service.SparkUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class App 
 {
     public static void main( String[] args )
     {
-        groupLinesFromFile("lngtest.txt");
+        groupLinesFromFile("lng.txt");
     }
 
+    /**
+     * Получить данные из файла и записать в новый файл
+     * @param fileName имя файла для чтения данных
+     */
     public static void groupLinesFromFile(String fileName) {
-        File file = new File(fileName);
-        List<String> lines = readLinesFromFile(file);
 
-        //лист со всеми группами
+        List<String> lines = SparkUtils.readFileWithSpark(fileName);
+
+        //Список групп
         List<List<String>> groups = new ArrayList<>();
-        for (int i = 0; i < lines.size() - 1; i++) {
 
-            //при добавлении в группу значение строки в общем списке перетирается
-            //если во внешний цикл попадает не пустая строка, значит в группах её нет
-            if (!lines.get(i).isBlank()) {
-                List<String> group = new ArrayList<>();
-                group.add(lines.get(i));
-                //внутренний цикл проходит по всем следующим строкам, проверяя на соответствие заданному условию
-                //(совпадение значений в колонке)
-                for (int j = i + 1; j < lines.size(); j++) {
-                    if (lineIsInsideTheGroup(group, lines.get(j))) {
-                        group.add(lines.get(j));
-                        lines.set(j, "");
-                        j = i;
-                    }
+        //Телефонные номера с позициями в строке
+        List<Map<String, Integer>> numbersWithPositions = new ArrayList<>();
+
+        //группы для слияния
+        Map<Integer, Integer> groupsToJoin = new HashMap<>();
+
+        lines.forEach(line -> {
+            String[] lineNumbers = line.split(";");
+            TreeSet<Integer> foundInGroups = new TreeSet<>();
+            List<PhoneNumber> phoneNumbers = new ArrayList<>();
+            for (int i = 0; i < lineNumbers.length; i++)
+            {
+                String number = lineNumbers[i];
+
+                if (number.equals("\"\"")) continue;
+
+                if (numbersWithPositions.size() == i) numbersWithPositions.add(new HashMap<>());
+
+                Map<String, Integer> wordToGroupNumber = numbersWithPositions.get(i);
+                Integer wordGroupNumber = wordToGroupNumber.get(number);
+                if (wordGroupNumber != null)
+                {
+                    while (groupsToJoin.containsKey(wordGroupNumber))
+                        wordGroupNumber = groupsToJoin.get(wordGroupNumber);
+                        foundInGroups.add(wordGroupNumber);
                 }
-                if (group.size() > 1) {
-                    groups.add(group);
+                else
+                {
+                    phoneNumbers.add(new PhoneNumber(number, i));
                 }
             }
-        }
+            int groupNumber;
+            if (!foundInGroups.isEmpty()) {
+                groupNumber = foundInGroups.first();
+            } else {
+                groupNumber = groups.size();
+                groups.add(new ArrayList<>());
+            }
+            phoneNumbers.forEach(number -> numbersWithPositions
+                    .get(number.getPosition()).put(number.getValue(), groupNumber));
+
+            foundInGroups.forEach(mergeGroupNumber -> {
+                if (mergeGroupNumber != groupNumber)
+                {
+                    groupsToJoin.put(mergeGroupNumber, groupNumber);
+                    groups.get(groupNumber).addAll(groups.get(mergeGroupNumber));
+                    groups.set(mergeGroupNumber, null);
+                }
+            } );
+            groups.get(groupNumber).add(line);
+        });
+        groups.removeAll(Collections.singletonList(null));
+
+        //Группы с более, чем одним элементом
+        List<List<String>> finalGroups = groups.stream().filter(g -> g.size() > 1).collect(Collectors.toList());
+
+        System.out.println("Количество групп: " + finalGroups.size());
+        System.out.println("--------------------------------");
         //Вывод номера группы и входящих в неё строк
         AtomicInteger count = new AtomicInteger(1);
-        groups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {
+        finalGroups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {
                     System.out.println("Группа " + count.getAndIncrement() + "\n");
                     group.forEach(gr -> {
                         System.out.println(gr + "\n");
@@ -53,38 +99,6 @@ public class App
         );
     }
 
-    //метод проверяет, подходит ли строка для группы
-    public static boolean lineIsInsideTheGroup(List<String> groups, String string2) {
 
-        for (int i = 0; i < groups.size(); i++) {
-            String string1 = groups.get(i);
-            //сравниваем каждую строку группы с проверяемой строкой и проходим циклом по короткой во избежание IndexOutOfBoundsException
-            String[] split1 = string1.split(";");
-            String[] split2 = string2.split(";");
-            String[] shortList = split1.length < split2.length ?
-                    split1
-                    : split2;
-            String[] longList = split1.length >= split2.length ?
-                    split1
-                    : split2;
-            for (int j = 0; j < shortList.length; j++) {
-                if (!shortList[j].equals("\"\"") && shortList[j].equals(longList[j])) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
-    //получить список строк из файла
-    public static List<String> readLinesFromFile(File file) {
-        Set<String> set = new HashSet<>();
-
-        try (Stream<String> lines = Files.lines(Paths.get(file.getName()))) {
-            set = lines.collect(Collectors.toSet());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>(set);
-    }
 }
