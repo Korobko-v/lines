@@ -28,6 +28,12 @@ public class FileUtils {
         return javaRDD.distinct().filter(line -> line.matches("(\"\\d*\")?(;\"\\d*\")+")).collect();
     }
 
+    /**
+     * Запись в файл
+     * @param fileName имя файла
+     * @param finalGroups список групп для записи
+     * @return "SUCCESS", если файл записан удачно, иначе ошибка
+     */
     public static String writeToFile(String fileName, List<List<String>> finalGroups) {
         try (FileWriter writer = new FileWriter(fileName)) {
             writer.write("Количество групп: " + finalGroups.size() + "\n");
@@ -62,26 +68,5 @@ public class FileUtils {
      */
     private static JavaSparkContext createSparkContext() {
         return new JavaSparkContext(new SparkConf().setMaster("local").setAppName("App"));
-    }
-
-    /**
-     * Получить данные из файла без использования Spark
-     *
-     * @param file файл с данными
-     * @return список строк из файла
-     */
-    public static List<String> readLinesFromFile(File file) {
-        Set<String> lines = new HashSet<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            while (reader.ready()) {
-                String line = reader.readLine();
-                lines.add(line);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Файл отсутствует или не указан");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>(lines);
     }
 }
