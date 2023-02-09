@@ -12,36 +12,49 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class App 
-{
-    public static void main( String[] args )
-    {
-        groupLinesFromFile("lng.txt");
+public class App {
+    public static void main(String[] args) {
+        List<String> lines = SparkUtils.readFileWithSpark("lng.txt");
+
+        List<List<String>> groups = new ArrayList<>();
+
+        List<Map<String, Integer>> numbersWithPositions = new ArrayList<>();
+
+        Map<Integer, Integer> groupsToJoin = new HashMap<>();
+
+        List<List<String>> finalGroups = groupLinesFromFile(lines, groups, numbersWithPositions, groupsToJoin);
+
+        System.out.println("Количество групп: " + finalGroups.size());
+        System.out.println("--------------------------------");
+        AtomicInteger count = new AtomicInteger(1);
+        finalGroups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {
+                    System.out.println("Группа " + count.getAndIncrement() + "\n");
+                    group.forEach(gr -> {
+                        System.out.println(gr + "\n");
+                    });
+                }
+        );
     }
 
     /**
-     * Получить данные из файла и записать в новый файл
-     * @param fileName имя файла для чтения данных
+     * Сгруппировать номера по заданному условию (см. README)
+     * @param lines список строк из файла
+     * @param groups список групп
+     * @param numbersWithPositions телефонные номера с номерами позиций (колонок)
+     * @param groupsToJoin номера пар групп для слияния
+     *
+     * @return список сгруппированных номеров
      */
-    public static void groupLinesFromFile(String fileName) {
-
-        List<String> lines = SparkUtils.readFileWithSpark(fileName);
-
-        //Список групп
-        List<List<String>> groups = new ArrayList<>();
-
-        //Телефонные номера с позициями в строке
-        List<Map<String, Integer>> numbersWithPositions = new ArrayList<>();
-
-        //группы для слияния
-        Map<Integer, Integer> groupsToJoin = new HashMap<>();
+    public static List<List<String>> groupLinesFromFile(List<String> lines,
+                                          List<List<String>> groups,
+                                          List<Map<String, Integer>> numbersWithPositions,
+                                          Map<Integer, Integer> groupsToJoin) {
 
         lines.forEach(line -> {
             String[] lineNumbers = line.split(";");
             TreeSet<Integer> foundInGroups = new TreeSet<>();
             List<PhoneNumber> phoneNumbers = new ArrayList<>();
-            for (int i = 0; i < lineNumbers.length; i++)
-            {
+            for (int i = 0; i < lineNumbers.length; i++) {
                 String number = lineNumbers[i];
 
                 if (number.equals("\"\"")) continue;
@@ -50,14 +63,11 @@ public class App
 
                 Map<String, Integer> wordToGroupNumber = numbersWithPositions.get(i);
                 Integer wordGroupNumber = wordToGroupNumber.get(number);
-                if (wordGroupNumber != null)
-                {
+                if (wordGroupNumber != null) {
                     while (groupsToJoin.containsKey(wordGroupNumber))
                         wordGroupNumber = groupsToJoin.get(wordGroupNumber);
-                        foundInGroups.add(wordGroupNumber);
-                }
-                else
-                {
+                    foundInGroups.add(wordGroupNumber);
+                } else {
                     phoneNumbers.add(new PhoneNumber(number, i));
                 }
             }
@@ -72,33 +82,16 @@ public class App
                     .get(number.getPosition()).put(number.getValue(), groupNumber));
 
             foundInGroups.forEach(mergeGroupNumber -> {
-                if (mergeGroupNumber != groupNumber)
-                {
+                if (mergeGroupNumber != groupNumber) {
                     groupsToJoin.put(mergeGroupNumber, groupNumber);
                     groups.get(groupNumber).addAll(groups.get(mergeGroupNumber));
                     groups.set(mergeGroupNumber, null);
                 }
-            } );
+            });
             groups.get(groupNumber).add(line);
         });
         groups.removeAll(Collections.singletonList(null));
 
-        //Группы с более, чем одним элементом
-        List<List<String>> finalGroups = groups.stream().filter(g -> g.size() > 1).collect(Collectors.toList());
-
-        System.out.println("Количество групп: " + finalGroups.size());
-        System.out.println("--------------------------------");
-        //Вывод номера группы и входящих в неё строк
-        AtomicInteger count = new AtomicInteger(1);
-        finalGroups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {
-                    System.out.println("Группа " + count.getAndIncrement() + "\n");
-                    group.forEach(gr -> {
-                        System.out.println(gr + "\n");
-                    });
-                }
-        );
+        return groups.stream().filter(g -> g.size() > 1).collect(Collectors.toList());
     }
-
-
-
 }
