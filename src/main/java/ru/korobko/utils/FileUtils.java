@@ -1,12 +1,11 @@
 package ru.korobko.utils;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Для чтения из файла и записи в файл
@@ -19,10 +18,12 @@ public class FileUtils {
      * @param fileName имя файла
      * @return список строк из файла
      */
-    public static List<String> readFileWithSpark(String fileName) {
-        JavaSparkContext context = createSparkContext();
-        JavaRDD<String> javaRDD = context.textFile(fileName);
-        return javaRDD.distinct().filter(line -> line.matches("(\"\\d*\")?(;\"\\d*\")+")).collect();
+    public static List<String> readFromFile(String fileName) {
+        try {
+            return Files.lines(Path.of(fileName)).distinct().filter(line -> line.matches("(\"\\d*\")?(;\"\\d*\")+")).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("File doesn't exist");
+        }
     }
 
     /**
@@ -55,15 +56,5 @@ public class FileUtils {
             return "Failed to upload groups";
         }
         return "SUCCESS";
-    }
-
-
-    /**
-     * Создать контекст
-     *
-     * @return JavaSparkContext
-     */
-    private static JavaSparkContext createSparkContext() {
-        return new JavaSparkContext(new SparkConf().setMaster("local").setAppName("App"));
     }
 }

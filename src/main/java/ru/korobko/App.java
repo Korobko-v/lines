@@ -3,6 +3,7 @@ package ru.korobko;
 import ru.korobko.model.PhoneNumber;
 import ru.korobko.utils.FileUtils;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,7 +14,8 @@ import java.util.stream.Collectors;
 
 public class App {
     public static void main(String[] args) {
-        List<String> lines = FileUtils.readFileWithSpark(args[0]);
+        System.out.println("Started: " + ZonedDateTime.now());
+        List<String> lines = FileUtils.readFromFile(args[0]);
 
         List<List<String>> groups = new ArrayList<>();
 
@@ -24,6 +26,7 @@ public class App {
         List<List<String>> finalGroups = groupLinesFromFile(lines, groups, numbersWithPositions, groupsToJoin);
 
         FileUtils.writeToFile("output.txt", finalGroups);
+        System.out.println("Finished: " + ZonedDateTime.now());
     }
 
     /**
@@ -47,10 +50,8 @@ public class App {
             for (int i = 0; i < lineNumbers.length; i++) {
                 String number = lineNumbers[i];
 
-                if (number.equals("\"\"")) continue;
-
                 if (numbersWithPositions.size() == i) numbersWithPositions.add(new HashMap<>());
-
+                if (number.equals("\"\"")) continue;
                 Map<String, Integer> wordToGroupNumber = numbersWithPositions.get(i);
                 Integer wordGroupNumber = wordToGroupNumber.get(number);
                 if (wordGroupNumber != null) {
