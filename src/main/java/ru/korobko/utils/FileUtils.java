@@ -20,7 +20,7 @@ public class FileUtils {
      */
     public static List<String> readFromFile(String fileName) {
         try {
-            return Files.lines(Path.of(fileName)).distinct().filter(line -> line.matches("(\"\\d*\")?(;\"\\d*\")+")).collect(Collectors.toList());
+            return Files.lines(Path.of(fileName)).distinct().filter(line -> line.matches("(\"\\S*\")?(;\"\\S*\")+")).collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("File doesn't exist");
         }
