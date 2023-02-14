@@ -1,6 +1,6 @@
 package ru.korobko;
 
-import ru.korobko.model.PhoneNumber;
+import ru.korobko.model.Word;
 import ru.korobko.utils.FileUtils;
 
 import java.time.ZonedDateTime;
@@ -19,11 +19,11 @@ public class App {
 
         List<List<String>> groups = new ArrayList<>();
 
-        List<Map<String, Integer>> numbersWithPositions = new ArrayList<>();
+        List<Map<String, Integer>> wordsWithPositions = new ArrayList<>();
 
         Map<Integer, Integer> groupsToJoin = new HashMap<>();
 
-        List<List<String>> finalGroups = groupLinesFromFile(lines, groups, numbersWithPositions, groupsToJoin);
+        List<List<String>> finalGroups = groupLinesFromFile(lines, groups, wordsWithPositions, groupsToJoin);
 
         FileUtils.writeToFile("output.txt", finalGroups);
         System.out.println("Finished: " + ZonedDateTime.now());
@@ -33,33 +33,33 @@ public class App {
      * Сгруппировать номера по заданному условию (см. README)
      * @param lines список строк из файла
      * @param groups список групп
-     * @param numbersWithPositions телефонные номера с номерами позиций (колонок)
+     * @param wordsWithPositions телефонные номера с номерами позиций (колонок)
      * @param groupsToJoin номера пар групп для слияния
      *
      * @return список сгруппированных номеров
      */
     public static List<List<String>> groupLinesFromFile(List<String> lines,
                                           List<List<String>> groups,
-                                          List<Map<String, Integer>> numbersWithPositions,
+                                          List<Map<String, Integer>> wordsWithPositions,
                                           Map<Integer, Integer> groupsToJoin) {
 
         lines.forEach(line -> {
             String[] lineNumbers = line.split(";");
             TreeSet<Integer> foundInGroups = new TreeSet<>();
-            List<PhoneNumber> phoneNumbers = new ArrayList<>();
+            List<Word> words = new ArrayList<>();
             for (int i = 0; i < lineNumbers.length; i++) {
-                String number = lineNumbers[i];
+                String word = lineNumbers[i];
 
-                if (numbersWithPositions.size() == i) numbersWithPositions.add(new HashMap<>());
-                if (number.equals("\"\"")) continue;
-                Map<String, Integer> wordToGroupNumber = numbersWithPositions.get(i);
-                Integer wordGroupNumber = wordToGroupNumber.get(number);
+                if (wordsWithPositions.size() == i) wordsWithPositions.add(new HashMap<>());
+                if (word.equals("\"\"")) continue;
+                Map<String, Integer> wordToGroupNumber = wordsWithPositions.get(i);
+                Integer wordGroupNumber = wordToGroupNumber.get(word);
                 if (wordGroupNumber != null) {
                     while (groupsToJoin.containsKey(wordGroupNumber))
                         wordGroupNumber = groupsToJoin.get(wordGroupNumber);
                     foundInGroups.add(wordGroupNumber);
                 } else {
-                    phoneNumbers.add(new PhoneNumber(number, i));
+                    words.add(new Word(word, i));
                 }
             }
             int groupNumber;
@@ -69,8 +69,8 @@ public class App {
                 groupNumber = groups.size();
                 groups.add(new ArrayList<>());
             }
-            phoneNumbers.forEach(number -> numbersWithPositions
-                    .get(number.getPosition()).put(number.getValue(), groupNumber));
+            words.forEach(word -> wordsWithPositions
+                    .get(word.getPosition()).put(word.getValue(), groupNumber));
 
             foundInGroups.forEach(mergeGroupNumber -> {
                 if (mergeGroupNumber != groupNumber) {

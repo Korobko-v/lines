@@ -1,9 +1,9 @@
 package ru.korobko.model;
 
 /**
- * Номер телефона
+ * Слово
  */
-public class PhoneNumber {
+public class Word {
 
     /**
      * Номер
@@ -15,7 +15,7 @@ public class PhoneNumber {
      */
     private int position;
 
-    public PhoneNumber(String value, int position) {
+    public Word(String value, int position) {
         this.value = value;
         this.position = position;
     }
