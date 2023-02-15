@@ -46,6 +46,17 @@ public class LinesUnitTests
 
         assertTrue(groups3.get(0).contains("\"111\";\"123\";\"222\""));
         assertTrue(groups3.get(1).contains("\"244\";\"333\";\"800\""));
+
+        list.add("255;100;1");
+        list.add("256;100;0");
+
+        List<List<String>> groups4 = App.groupLinesFromFile(list, new ArrayList<>(), new ArrayList<>(), new HashMap<>());
+        groups4.forEach(group-> {
+            System.out.println("GROUP: " + "\n");
+            group.forEach(g -> System.out.println(g));
+        });
+
+        assertEquals(3, groups4.size());
     }
 
     @Test
