@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
  */
 public class FileUtils {
 
+    public static String pattern = "(^[0-9]*[.,]?[0-9]+)?(;[0-9]*[.,]?[0-9]+)|(^\"[0-9]*[.,]?[0-9]+)?(;[0-9]*[.,]?[0-9]+\")";
+
     /**
      * Получить данные из файла
      *
@@ -58,3 +60,5 @@ public class FileUtils {
         return "SUCCESS";
     }
 }
+
+

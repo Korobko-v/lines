@@ -51,7 +51,7 @@ public class App {
                 String word = lineNumbers[i];
 
                 if (wordsWithPositions.size() == i) wordsWithPositions.add(new HashMap<>());
-                if (word.equals("\"\"")) continue;
+                if (word.replaceAll("\"", "").isBlank()) continue;
                 Map<String, Integer> wordToGroupNumber = wordsWithPositions.get(i);
                 Integer wordGroupNumber = wordToGroupNumber.get(word);
                 if (wordGroupNumber != null) {
