@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
  */
 public class FileUtils {
 
-    public static String pattern = "(^[0-9]*[.,]?[0-9]+)?(;[0-9]*[.,]?[0-9]+)|(^\"[0-9]*[.,]?[0-9]+)?(;[0-9]*[.,]?[0-9]+\")";
+    public static String pattern = "^[^\";]*(;\"[^\";]\")*";
+    public static String pattern2 = "^\"[^\";]*\"(;\"[^\";]*\")*";
 
     /**
      * Получить данные из файла
@@ -22,7 +23,10 @@ public class FileUtils {
      */
     public static List<String> readFromFile(String fileName) {
         try {
-            return Files.lines(Path.of(fileName)).distinct().filter(line -> line.matches("(\"\\S*\")?(;\"\\S*\")+")).collect(Collectors.toList());
+            return Files.lines(Path.of(fileName))
+                    .distinct().filter(line ->
+                            line.matches(pattern) || line.matches(pattern2))
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("File doesn't exist");
         }
