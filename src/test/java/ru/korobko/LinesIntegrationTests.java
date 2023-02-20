@@ -54,4 +54,33 @@ public class LinesIntegrationTests {
         assertTrue(input.delete());
         assertTrue(output.delete());
     }
+
+    @Test
+    public void nonMatchingStringsTest() {
+        File input = new File("input.txt");
+        try (FileWriter writer = new FileWriter(input)) {
+
+            //Строки, не соответствующие шаблону
+            writer.write("\"11\"1\";\"123\";\"222\""  + "\n");
+            writer.write("\"33\"\"\"123\";\"100\"" + "\n");
+            writer.write("\"4.0.4\";\"123\";\"100\"" + "\n");
+
+
+            //Строка с числом в кавычках и пустыми "колонками" без кавычек проходит
+            writer.write("\"81917.1\";;" + "\n");
+            writer.write("\"81917\";;" + "\n");
+            writer.write("\"81917\";917;" + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<String> list = FileUtils.readFromFile(input.getName());
+        assertEquals(3, list.size());
+
+        //в список строк прошли только валидные строки
+        assertTrue(list.contains("\"81917.1\";;"));
+        assertTrue(list.contains("\"81917\";;"));
+        assertTrue(list.contains("\"81917\";917;"));
+
+        assertTrue(input.delete());
+    }
 }

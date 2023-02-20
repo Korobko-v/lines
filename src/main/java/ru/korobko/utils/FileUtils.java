@@ -12,9 +12,11 @@ import java.util.stream.Collectors;
  */
 public class FileUtils {
 
-    //public static String pattern = "(^[^\";]*(;\"[^\";]\")*$)|(^\"[^\";]*\"(;\"[^\";]*\")*$)";
-    public static String pattern = "(\\d+(\\.\\d+)?|\\d*)*(;(\\d+(\\.\\d+)?|\\d*))*";
-    public static String pattern2 = "\"(\\d+(\\.\\d+)?|\\d*)\"(;\"(\\d+(\\.\\d+)?|\\d*)\")*";
+    public static String pattern =
+            //первое число(слово) в строке в кавычках или без них
+            "^(((\\d+(\\.\\d+)?)*)|(\"((\\d+(\\.\\d+)?)*)\"))" +
+            //последующие числа(слова), если они есть, в строке в кавычках или без них
+            "((;((\\d+(\\.\\d+)?)*))|(;\"((\\d+(\\.\\d+)?)*)\"))*$";
 
     /**
      * Получить данные из файла
@@ -26,8 +28,7 @@ public class FileUtils {
         try {
             return Files.lines(Path.of(fileName))
                     .distinct().filter(line ->
-                            line.matches(pattern) ||
-                            line.matches(pattern2))
+                            line.matches(pattern))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("File doesn't exist");
