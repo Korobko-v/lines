@@ -45,7 +45,7 @@ public class FileUtils {
         try (FileWriter writer = new FileWriter(fileName)) {
             String groupCount = "Количество групп: " + finalGroups.size();
             writer.write(groupCount + "\n");
-            System.out.println(groupCount);
+            System.out.println("Total groups: " + finalGroups.size());
             writer.write("--------------------------------" + "\n");
             AtomicInteger count = new AtomicInteger(1);
             finalGroups.parallelStream().sorted((o1, o2) -> o2.size() - o1.size()).forEachOrdered(group -> {

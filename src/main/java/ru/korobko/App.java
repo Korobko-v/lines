@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class App {
     public static void main(String[] args) {
         ZonedDateTime start = ZonedDateTime.now();
-        System.out.println("Начало выполнения программы: " + start);
+        System.out.println("Started: " + start);
         List<String> lines = FileUtils.readFromFile(args[0]);
 
         List<List<String>> groups = new ArrayList<>();
@@ -28,8 +28,8 @@ public class App {
 
         FileUtils.writeToFile("output.txt", finalGroups);
         ZonedDateTime finish = ZonedDateTime.now();
-        System.out.println("Конец выполнения программы: " + finish);
-        System.out.println("Время выполнения программы: "
+        System.out.println("Finished: " + finish);
+        System.out.println("Program duration: "
                 + ((finish.toInstant().toEpochMilli() - start.toInstant().toEpochMilli()) / 1000) + " секунд");
     }
 
