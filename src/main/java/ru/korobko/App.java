@@ -30,7 +30,7 @@ public class App {
         ZonedDateTime finish = ZonedDateTime.now();
         System.out.println("Finished: " + finish);
         System.out.println("Program duration: "
-                + ((finish.toInstant().toEpochMilli() - start.toInstant().toEpochMilli()) / 1000) + " секунд");
+                + ((finish.toInstant().toEpochMilli() - start.toInstant().toEpochMilli()) / 1000) + " seconds");
     }
 
     /**
